@@ -27,8 +27,18 @@ spec:
         app: odoo
         tier: frontend
     spec:
+      initContainers:
+      - name: volume-mount-hack
+        image: busybox
+        command: ['sh', '-c']
+        args: ["chmod 777 /var/lib/odoo; chmod 777 /mnt/extra-addons"]
+        volumeMounts:
+        - name: odoo-web-persistent-storage
+          mountPath: /var/lib/odoo
+        - name: odoo-addons-persistent-storage
+          mountPath: /mnt/extra-addons
       containers:
-      - image: odoo:11
+      - image: gchevalley/odoo:11
         name: odoo
         env:
         - name: HOST
@@ -43,3 +53,15 @@ spec:
         ports:
         - containerPort: 8069
           name: odoo
+        volumeMounts:
+        - name: odoo-web-persistent-storage
+          mountPath: /var/lib/odoo
+        - name: odoo-addons-persistent-storage
+          mountPath: /mnt/extra-addons
+      volumes:
+      - name: odoo-web-persistent-storage
+        persistentVolumeClaim:
+          claimName: odoo-web-pv-claim
+      - name: odoo-addons-persistent-storage
+        persistentVolumeClaim:
+          claimName: odoo-addons-pv-claim
